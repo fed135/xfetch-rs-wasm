@@ -1,34 +1,66 @@
+extern crate wasm_bindgen;
+
+use wasm_bindgen::prelude::*;
+use wasm_bindgen::convert::IntoWasmAbi;
+use wasm_bindgen::describe::WasmDescribe;
 use lru::LruCache;
 use xfetch::CacheEntry;
 use std::time::Duration;
 
-#[wasm_bindgen]
-impl<T> TLRUCache<T> {
+trait TLRU {
+  fn new(&self, maxItems: u64, ttl: u64);
+  fn put(&self, key: &str, value: &JsValue);
+  fn get(&self, key: &str) -> JsValue;
+  fn remove(&self, key: &str);
+  fn clear(&self);
+  fn count(&self) -> u64;
+}
 
-  pub fn new<F>(maxItems: u64, ttl: u64) -> TLRUCache<T> {
-    self.cache = LruCache::new(maxItems);
+struct xFetchWASM {
+  ttl: Duration,
+  cache: LruCache,
+}
+
+impl TLRU for xFetchWASM {
+  fn new(&self, maxItems: u64, ttl: u64) {
+    self.cache = LruCache::new(maxItems.try_into().unwrap());
     self.ttl = Duration::from_millis(ttl);
   }
   
-  pub fn put(key: &str, value: &JsValue) -> () {
-    self.cache.put(key, CacheEntry::builder()
-        .with_ttl(self.ttl)
-        .build());
+  fn put(&self, key: &str, value: &JsValue) -> () {
+    self.cache.put(key, CacheEntry::builder({ value, self.ttl })
+      .with_ttl(self.ttl)
+      .build());
   }
   
-  pub fn get(key: &str) -> JsValue {
+  fn get(&self, key: &str) -> JsValue {
     return self.cache.get(key);
   }
   
-  pub fn remove(key: &str) -> () {
+  fn remove(&self, key: &str) -> () {
     self.cache.pop(key);
   }
   
-  pub fn clear() -> () {
+  fn clear(&self) -> () {
     self.cache.clear();
   }
 
-  pub fn count() -> u64 {
+  fn count(&self) -> u64 {
     return self.cache.len();
   }
+}
+
+impl IntoWasmAbi for xFetchWASM {
+  fn into_abi(self) -> JsValue { self as JsValue }
+}
+
+impl WasmDescribe for xFetchWASM {
+  fn describe() -> JsValue { None as JsValue }
+}
+
+#[wasm_bindgen]
+pub fn main(maxItems: u64, ttl: u64) -> xFetchWASM {
+  let c = xFetchWASM{};
+  c.new(maxItems, ttl);
+  return c;
 }
