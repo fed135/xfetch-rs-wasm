@@ -12,6 +12,9 @@ categories = ["algorithms", "caching"]
 license = "Apache-2.0"
 edition = "2020"
 
+[lib]
+crate-type = ["cdylib"]
+
 [dependencies]
 lru = "0.5.z"
 xfetch = "1.0.0"
