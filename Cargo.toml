@@ -1,20 +1,20 @@
 [package]
-name = "xfetch"
+name = "xfetch-wasm"
 version = "1.0.0"
 description = "Optimal Probabilistic Cache Stampede Prevention"
-authors = ["Kan-Ru Chen <kanru@kanru.info>"]
+authors = ["Kan-Ru Chen <kanru@kanru.info>", "Frederic Charette <fredericcharette@gmail.com>"]
 documentation = "https://docs.rs/xfetch"
 homepage = "https://github.com/kanru/xfetch-rs"
 repository = "https://github.com/kanru/xfetch-rs"
 readme = "README.md"
-keywords = ["cache", "xfetch"]
+keywords = ["cache", "xfetch", "wasm"]
 categories = ["algorithms", "caching"]
-license = "MIT OR Apache-2.0"
-edition = "2018"
+license = "Apache-2.0"
+edition = "2020"
 
 [dependencies]
 lru = "0.5.z"
-rand = "0.7.z"
+xfetch = "1.0.0"
 wasm-bindgen = "0.2.z"
 
 [dev-dependencies]
