@@ -13,11 +13,11 @@ license = "MIT OR Apache-2.0"
 edition = "2018"
 
 [dependencies]
-rand = "0.7.2"
+lru = "0.5.z"
+rand = "0.7.z"
 wasm-bindgen = "0.2.z"
 
 [dev-dependencies]
-lru = "0.4.0"
 criterion = "0.3.0"
 
 [[bench]]
