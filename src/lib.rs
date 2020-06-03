@@ -8,7 +8,6 @@ use xfetch::CacheEntry;
 use std::time::Duration;
 
 trait TLRU {
-  fn new(&self, maxItems: u64, ttl: u64);
   fn put(&self, key: &str, value: &JsValue);
   fn get(&self, key: &str) -> JsValue;
   fn remove(&self, key: &str);
@@ -21,14 +20,15 @@ struct xFetchWASM {
   cache: LruCache,
 }
 
-impl TLRU for xFetchWASM {
-  fn new(&self, maxItems: u64, ttl: u64) {
-    self.cache = LruCache::new(maxItems.try_into().unwrap());
-    self.ttl = Duration::from_millis(ttl);
+impl Default for xFetchWASM {
+  fn default () -> xFetchWASM {
+    xFetchWASM{cache: LruCache::new(0), ttl: Duration::from_millis(0)}
   }
-  
+}
+
+impl TLRU for xFetchWASM {
   fn put(&self, key: &str, value: &JsValue) -> () {
-    self.cache.put(key, CacheEntry::builder({ value, self.ttl })
+    self.cache.put(key, CacheEntry::builder{value: value, ttl: self.ttl}
       .with_ttl(self.ttl)
       .build());
   }
@@ -55,12 +55,12 @@ impl IntoWasmAbi for xFetchWASM {
 }
 
 impl WasmDescribe for xFetchWASM {
-  fn describe() -> JsValue { None as JsValue }
+  fn describe() -> () {};
 }
 
 #[wasm_bindgen]
 pub fn main(maxItems: u64, ttl: u64) -> xFetchWASM {
-  let c = xFetchWASM{};
-  c.new(maxItems, ttl);
+  let c = xFetchWASM{ttl: Duration::from_millis(ttl), ..Default::default()};
+  c.cache.resize(maxItems);
   return c;
 }
