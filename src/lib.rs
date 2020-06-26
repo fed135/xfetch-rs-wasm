@@ -2,7 +2,6 @@ extern crate wasm_bindgen;
 
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::convert::IntoWasmAbi;
-use wasm_bindgen::describe::WasmDescribe;
 use lru::LruCache;
 use xfetch::CacheEntry;
 use std::time::Duration;
@@ -15,18 +14,18 @@ trait TLRU {
   fn count(&self) -> u64;
 }
 
-struct xFetchWASM {
+struct XFetchWASM {
   ttl: Duration,
-  cache: LruCache,
+  cache: LruCache<isize, char>,
 }
 
-impl Default for xFetchWASM {
-  fn default () -> xFetchWASM {
-    xFetchWASM{cache: LruCache::new(0), ttl: Duration::from_millis(0)}
+impl Default for XFetchWASM {
+  fn default () -> XFetchWASM {
+    XFetchWASM{cache: LruCache::new(0), ttl: Duration::from_millis(0)}
   }
 }
 
-impl TLRU for xFetchWASM {
+impl TLRU for XFetchWASM {
   fn put(&self, key: &str, value: &JsValue) -> () {
     self.cache.put(key, CacheEntry::builder{value: value, ttl: self.ttl}
       .with_ttl(self.ttl)
@@ -50,17 +49,14 @@ impl TLRU for xFetchWASM {
   }
 }
 
-impl IntoWasmAbi for xFetchWASM {
-  fn into_abi(self) -> JsValue { self as JsValue }
-}
-
-impl WasmDescribe for xFetchWASM {
-  fn describe() -> () {};
+impl IntoWasmAbi for XFetchWASM {
+  type Abi: WasmAbi;
+  fn into_abi(self, extra: &mut Stack) -> Self::Abi;
 }
 
 #[wasm_bindgen]
-pub fn main(maxItems: u64, ttl: u64) -> xFetchWASM {
-  let c = xFetchWASM{ttl: Duration::from_millis(ttl), ..Default::default()};
+pub fn main(maxItems: u64, ttl: u64) -> XFetchWASM {
+  let c = XFetchWASM{ttl: Duration::from_millis(ttl), ..Default::default()};
   c.cache.resize(maxItems);
   return c;
 }
